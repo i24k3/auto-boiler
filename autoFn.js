@@ -61,10 +61,3 @@ async function autoFunction (dirPath) {
 
 // autoFunction('./src');
 
-(async ()=> {
-    const res = await readFile("./conf.json");
-    console.log(res);
-})();
-
-
-
