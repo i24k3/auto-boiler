@@ -2,10 +2,9 @@
 
 const fs = require('node:fs').promises;
 const path = require('node:path');
+const { getTemplate }= require('./template');
 
-// const targetExtensions = ['.jsx','.tsx', '.ts', '.js'];
-
-async function readAllDirs (parentPath, extensions=targetExtensions) {
+async function readAllDirs (parentPath, extensions) {
     let filesPath = [];
     try {
         const childrens = await fs.readdir(parentPath);
@@ -15,36 +14,26 @@ async function readAllDirs (parentPath, extensions=targetExtensions) {
             const stats = await fs.stat(childrenPath);
 
             if (stats.isDirectory()) {
-                const dirChildren = await readAllDirs(childrenPath);
+                const dirChildren = await readAllDirs(childrenPath, extensions);
                 filesPath = filesPath.concat(dirChildren);
             } else if (stats.isFile()) {
                 if (extensions.includes(path.extname(children))) filesPath.push(childrenPath);
             }
         }
     } catch (err) {
-        console.error("Error reading dir", err.message);
+        console.error("Error reading dir: ", err.message);
     }
     return filesPath;
 }
 
 function writeAllFiles (filesPaths) {
-    const strictMode = '"use strict"\n';
     filesPaths.forEach(filePath => {
+
         const fileName = path.basename(filePath, path.extname(filePath));
+        const extension = filePath.slice(filePath.lastIndexOf('.'));
+        const code = getTemplate(extension, fileName);
 
-let fnBody = `
-export function ${fileName}() {
-
-    return (
-        <>
-        </>
-    );
-}
-`;
-
-        if (path.extname(filePath) === ".jsx" || path.extname(filePath) === '.js') fnBody = strictMode + fnBody;
-
-        fs.writeFile(filePath, fnBody, err => {
+        fs.writeFile(filePath, code, err => {
             if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
         })
         console.log("data written successfully");
@@ -54,10 +43,15 @@ export function ${fileName}() {
 }
 
 async function autoFunction (dirPath) {
-    const dirs = await readAllDirs(dirPath);
+
+    const res = await fs.readFile('./conf.json', 'utf8');
+    const json = await JSON.parse(res);
+    const extensions = json.target;
+
+    const dirs = await readAllDirs(dirPath, extensions);
     writeAllFiles(dirs);
     return;
 }
 
-// autoFunction('./src');
+autoFunction('./src');
 
