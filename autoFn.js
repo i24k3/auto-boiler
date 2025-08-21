@@ -3,8 +3,7 @@
 const fs = require('node:fs').promises;
 const path = require('node:path');
 
-const targetExtensions = ['.jsx','.tsx', '.ts', '.js'];
-
+// const targetExtensions = ['.jsx','.tsx', '.ts', '.js'];
 
 async function readAllDirs (parentPath, extensions=targetExtensions) {
     let filesPath = [];
@@ -59,5 +58,13 @@ async function autoFunction (dirPath) {
     writeAllFiles(dirs);
     return;
 }
-autoFunction('./src');
+
+// autoFunction('./src');
+
+(async ()=> {
+    const res = await readFile("./conf.json");
+    console.log(res);
+})();
+
+
 
