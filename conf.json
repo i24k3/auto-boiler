@@ -1,4 +1,4 @@
 {
-    "target":[".jsx",".tsx", ".ts", ".js"],
+    "target":[".jsx",".tsx", ".ts", ".js", ".java"],
     "dir": "./src"
 }

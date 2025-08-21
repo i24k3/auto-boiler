@@ -1,6 +1,9 @@
 const getTemplate= (extension, fileName) => {
     switch (extension) {
 
+        case ".js":
+            return js(fileName);
+
         case ".jsx":
             return jsx(fileName);
 
@@ -10,8 +13,11 @@ const getTemplate= (extension, fileName) => {
         case ".tsx":
             return tsx(fileName);
 
+        case ".java":
+            return java(fileName);
+
         default:
-            return js(fileName);
+            return '';
     }
 }
 
@@ -51,6 +57,14 @@ export default function ${fileName}() {
         </>
     );
 }`; }
+
+const java = (fileName) => {return `
+public class ${fileName}{
+    public static void ${fileName.toLowerCase()}(String args[]) {
+
+    }
+}
+`;}
 
 
 module.exports = {getTemplate};
