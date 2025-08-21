@@ -1,6 +1,4 @@
 {
     "target":[".jsx",".tsx", ".ts", ".js"],
-    "ignore": [],
-    "dir": "./src",
-    "customTemplate": "./template.file"
+    "dir": "./src"
 }

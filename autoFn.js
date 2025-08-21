@@ -42,16 +42,18 @@ function writeAllFiles (filesPaths) {
     return;
 }
 
-async function autoFunction (dirPath) {
+async function autoFunction () {
 
     const res = await fs.readFile('./conf.json', 'utf8');
     const json = await JSON.parse(res);
     const extensions = json.target;
+    const dirPath = json.dir;
 
     const dirs = await readAllDirs(dirPath, extensions);
     writeAllFiles(dirs);
+
     return;
 }
 
-autoFunction('./src');
+autoFunction();
 
