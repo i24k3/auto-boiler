@@ -1,9 +1,12 @@
 "use strict";
 
 const fs = require('fs/promises');
+const path = require('node:path');
+
 const getTemplate = async (extension, fileName) => {
+    const configPath = path.join(__dirname, 'conf.json');
     try {
-        const res = await fs.readFile('./conf.json', 'utf8');
+        const res = await fs.readFile(configPath, 'utf8');
         const json = await JSON.parse(res);
 
         const extensions = json.target;

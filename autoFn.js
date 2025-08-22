@@ -27,8 +27,13 @@ async function getAllDirectoryFiles (parentPath, extensions) {
     return filesPath;
 }
 
+let flag = true;
 async function getAllDirectories (rootDir) {
     let folders = [];
+    if (flag) {
+        folders.push(rootDir);
+        flag = false;
+    }
     try {
         const contents = await fs.readdir(rootDir);
         for (const item of contents) {
@@ -81,15 +86,20 @@ async function autoFunction (dirPath, extensions) {
 
 const listenDirChanges = async (dirPath, extensions) => {
     const dirPaths = await getAllDirectories(dirPath); 
-    console.log(dirPaths);
-    dirPaths.forEach(async (d_path) => {
+    const filePaths = await getAllDirectoryFiles(dirPath);
+
+    const allPaths = [...dirPaths,...filePaths]
+
+    allPaths.forEach(async (itemPath) => {
         try {
-            const watcher = watch(d_path);
+            const watcher = watch(itemPath);
             for await (const event of watcher) {
-                if (['change', 'rename'].includes(event.eventType)) autoFunction(d_path, extensions);
+                console.log("delete file event: ", event.eventType);
+                console.log("delete folder event: ", event.eventType);
+                if (['change', 'rename'].includes(event.eventType)) autoFunction(itemPath, extensions);
             }
         } catch (err) {
-            console.error(`Error watching ${d_path}:`, err.message);
+            console.error(`Error watching ${itemPath}:`, err.message);
         }
     });
 } 
@@ -97,8 +107,10 @@ const listenDirChanges = async (dirPath, extensions) => {
 
 (
     async () => {
+        const configPath = path.join(__dirname, 'conf.json');
         try {
-            const res = await fs.readFile('./conf.json', 'utf8');
+            const res = await fs.readFile(configPath, 'utf8');
+
             const json = await JSON.parse(res);
             const extensions = json.target;
             const dirPath = json.dir;
