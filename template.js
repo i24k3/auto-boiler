@@ -1,71 +1,28 @@
-const getTemplate= (extension, fileName) => {
-    switch (extension) {
-
-        case ".js":
-            return js(fileName);
-
-        case ".jsx":
-            return jsx(fileName);
-
-        case ".ts":
-            return ts(fileName);
-
-        case ".tsx":
-            return tsx(fileName);
-
-        case ".java":
-            return java(fileName);
-
-        default:
-            return '';
-    }
-}
-
-
-const js = (fileName) => { return `
 "use strict";
 
-function ${fileName} () {
-    return ;
-}
+const fs = require('fs/promises');
+const getTemplate = async (extension, fileName) => {
+    try {
+        const res = await fs.readFile('./conf.json', 'utf8');
+        const json = await JSON.parse(res);
 
-module.exports = { ${fileName} };
-`; }
+        const extensions = json.target;
+        if (!extensions.includes(extension)) throw new Error(`Extension ${extension} ins't supported`);
+        
+        const fn = getFunction(extension);
+        return fn(fileName);
 
-const ts = (fileName) => {return `
-export const ${fileName} = () => {
-    return ;
-}`; }
-
-const tsx = (fileName) => {return `
-const ${fileName} = () => {
-    return (
-        <>
-        </>
-    );
-}
-
-export default ${fileName};
-`; }
-
-const jsx = (fileName) => {return`
-"use strict"
-
-export default function ${fileName}() {
-    return (
-        <>
-        </>
-    );
-}`; }
-
-const java = (fileName) => {return `
-public class ${fileName}{
-    public static void ${fileName.toLowerCase()}(String args[]) {
-
+    } catch (err) {
+        console.error("Error reading conf.json file: ",err);
+        return "";
     }
 }
-`;}
 
+
+const functions = require('./codeTemplate');
+const getFunction  = (extension) => {
+    const fileType = extension.split('.')[1];
+    return functions[fileType];
+}
 
 module.exports = {getTemplate};
-
