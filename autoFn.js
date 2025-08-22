@@ -2,7 +2,7 @@
 
 const fs = require('node:fs').promises;
 const path = require('node:path');
-const { getTemplate }= require('./template');
+const { getTemplate } = require('./template');
 
 async function readAllDirs (parentPath, extensions) {
     let filesPath = [];
@@ -27,11 +27,11 @@ async function readAllDirs (parentPath, extensions) {
 }
 
 function writeAllFiles (filesPaths) {
-    filesPaths.forEach(filePath => {
+    filesPaths.forEach(async (filePath)=> {
 
         const fileName = path.basename(filePath, path.extname(filePath));
         const extension = filePath.slice(filePath.lastIndexOf('.'));
-        const code = getTemplate(extension, fileName);
+        const code = await getTemplate(extension, fileName);
 
         fs.writeFile(filePath, code, err => {
             if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
