@@ -33,10 +33,20 @@ function writeAllFiles (filesPaths) {
         const extension = filePath.slice(filePath.lastIndexOf('.'));
         const code = await getTemplate(extension, fileName);
 
-        fs.writeFile(filePath, code, err => {
-            if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
-        })
-        console.log("data written successfully");
+        try {
+            const stats = await fs.stat(filePath);
+            if (stats.size !== 0) return;
+
+            fs.writeFile(filePath, code, err => {
+                if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
+            })
+            console.log("data written successfully");
+
+
+
+        } catch (err) {
+            console.error("error checking file: ", err);
+        }
     });
 
     return;
