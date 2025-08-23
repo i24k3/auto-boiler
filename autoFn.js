@@ -16,9 +16,8 @@ let directoryFilePaths = new Set();
             const json = await JSON.parse(res);
             const { target:extensions, dir:dirPath } = json;
 
-            directoryPaths = await getAllDirectories(dirPath); 
-            directoryFilePaths = await getAllDirectoryFiles(dirPath, extensions);
-
+            directoryPaths = new Set(await getAllDirectories(dirPath)); 
+            directoryFilePaths = new Set(await getAllDirectoryFiles(dirPath, extensions));
 
             writeAllFiles(directoryFilePaths);
 
@@ -78,17 +77,18 @@ async function getAllDirectories (rootDir) {
     return folders;
 }
 
-function writeAllFiles (filesPaths) {
-    filesPaths.forEach(async (filePath)=> {
+async function writeAllFiles (filesPaths, flag = false) {
+
+        for (const filePath of filesPaths) {
 
         const fileName = path.basename(filePath, path.extname(filePath));
         const extension = path.extname(filePath);
-        const code = await getTemplate(extension, fileName);
 
         try {
             const stats = await fs.stat(filePath);
-            if (stats.size !== 0) return;
+            if (!flag && stats.size !== 0) continue;
 
+            const code = await getTemplate(extension, fileName);
             fs.writeFile(filePath, code, err => {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
@@ -97,49 +97,57 @@ function writeAllFiles (filesPaths) {
         } catch (err) {
             console.error("error checking file: ", err);
         }
-    });
+    }
 
     return;
 }
 
-/*
-const listenDirChanges = async (directoryPaths, directoryFilePaths, extensions) => {
-    for (const dirPath of directoryPaths) {
+const listenDirChanges = async (directoryPaths, directoryFilePaths) => {
+    for (const dirPath of directoryPaths) watchDirectory(dirPath);
+
+
+    async function watchDirectory(dirPath) {
         try {
-            const watcher = watch(dirPath, {recursive: false});
+            const watcher = watch(dirPath, { recursive: false });
 
             for await (const event of watcher) {
                 const fullPath = path.join(dirPath, event.filename);
+
                 try {
                     const stats = await fs.stat(fullPath);
-                    if (stats.isDirectory()) {
 
-                        directoryPaths.push(fullPath);
-                        const subDirs = await getAllDirectories(fullPath);
-                        directoryPaths.push(...subDirs);
-                        listenDirChanges(directoryPaths);
+                    if (stats.isDirectory()) {
+                        if (!directoryPaths.has(fullPath)) {
+                            directoryPaths.add(fullPath);
+                            await watchDirectory(fullPath);
+
+                            const subDirs = await getAllDirectories(fullPath);
+                            for (const subDir of subDirs) {
+                                if (!directoryPaths.has(subDir)) {
+                                    directoryPaths.add(subDir);
+                                    await watchDirectory(subDir);
+                                }
+                            }
+                        }
                     } else if (stats.isFile()) {
- 
-                        directoryFilePaths.push(fullPath);
-                        const childrenFiles = await getAllDirectoryFiles(fullPath, extensions);
-                        directoryFilePaths.push(...childrenFiles);
-                        if (stats.size === 0) writeAllFiles(directoryFilePaths);
+                        if (!directoryFilePaths.has(fullPath)) {
+                            directoryFilePaths.add(fullPath);
+                            writeAllFiles([fullPath]);
+                        }
+                        if (event.eventType === 'rename') {
+                            writeAllFiles([fullPath], true);
+                        }
                     }
 
                 } catch (err) {
-                 if (err.code !== 'ENOENT') {
+                    if (err.code !== 'ENOENT') {
                         console.error("Error handling event:", err.message);
                     }
-
                 }
-
             }
-
         } catch (err) {
-              console.error(`Error watching ${dirPath}:`, err.message);
+            console.error(`Error watching ${dirPath}:`, err.message);
         }
     }
+}
 
-} 
-
-*/
