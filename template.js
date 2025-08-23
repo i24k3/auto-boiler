@@ -17,7 +17,7 @@ const getTemplate = async (extension, fileName) => {
 
     } catch (err) {
         console.error("Error reading conf.json file: ",err);
-        return "";
+        return " ";
     }
 }
 
