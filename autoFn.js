@@ -6,6 +6,7 @@ const { watch } = require('node:fs/promises');
 const { getTemplate } = require('./template');
 let directoryPaths = new Set(); 
 let directoryFilePaths = new Set();
+let extensions =[];
 
 (
     async () => {
@@ -14,7 +15,8 @@ let directoryFilePaths = new Set();
         try {
             const res = await fs.readFile(configPath, 'utf8');
             const json = await JSON.parse(res);
-            const { target:extensions, dir:dirPath } = json;
+            const dirPath  = json.dir;
+            extensions = json.target;
 
             directoryPaths = new Set(await getAllDirectories(dirPath)); 
             directoryFilePaths = new Set(await getAllDirectoryFiles(dirPath, extensions));
@@ -88,7 +90,7 @@ async function writeAllFiles (filesPaths, flag = false) {
             const stats = await fs.stat(filePath);
             if (!flag && stats.size !== 0) continue;
 
-            const code = await getTemplate(extension, fileName);
+            const code = await getTemplate(extensions, extension, fileName);
             fs.writeFile(filePath, code, err => {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
