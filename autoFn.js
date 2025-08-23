@@ -4,6 +4,31 @@ const fs = require('node:fs').promises;
 const path = require('node:path');
 const { watch } = require('node:fs/promises');
 const { getTemplate } = require('./template');
+let directoryPaths = new Set(); 
+let directoryFilePaths = new Set();
+
+(
+    async () => {
+
+        const configPath = path.join(__dirname, 'conf.json');
+        try {
+            const res = await fs.readFile(configPath, 'utf8');
+            const json = await JSON.parse(res);
+            const { target:extensions, dir:dirPath } = json;
+
+            directoryPaths = await getAllDirectories(dirPath); 
+            directoryFilePaths = await getAllDirectoryFiles(dirPath, extensions);
+
+
+            writeAllFiles(directoryFilePaths);
+
+            await listenDirChanges(directoryPaths, directoryFilePaths, extensions);
+
+        } catch(err) {
+            console.error(`init error: ${err.message}`);
+        }
+    }
+)();
 
 async function getAllDirectoryFiles (parentPath, extensions) {
     let filesPath = [];
@@ -57,7 +82,7 @@ function writeAllFiles (filesPaths) {
     filesPaths.forEach(async (filePath)=> {
 
         const fileName = path.basename(filePath, path.extname(filePath));
-        const extension = filePath.slice(filePath.lastIndexOf('.'));
+        const extension = path.extname(filePath);
         const code = await getTemplate(extension, fileName);
 
         try {
@@ -77,49 +102,44 @@ function writeAllFiles (filesPaths) {
     return;
 }
 
-async function autoFunction (dirPath, extensions) {
-    const dirs = await getAllDirectoryFiles(dirPath, extensions);
-    writeAllFiles(dirs);
-
-    return;
-}
-
-const listenDirChanges = async (dirPath, extensions) => {
-    const dirPaths = await getAllDirectories(dirPath); 
-    const filePaths = await getAllDirectoryFiles(dirPath);
-
-    const allPaths = [...dirPaths,...filePaths]
-
-    allPaths.forEach(async (itemPath) => {
+/*
+const listenDirChanges = async (directoryPaths, directoryFilePaths, extensions) => {
+    for (const dirPath of directoryPaths) {
         try {
-            const watcher = watch(itemPath);
+            const watcher = watch(dirPath, {recursive: false});
+
             for await (const event of watcher) {
-                console.log("delete file event: ", event.eventType);
-                console.log("delete folder event: ", event.eventType);
-                if (['change', 'rename'].includes(event.eventType)) autoFunction(itemPath, extensions);
+                const fullPath = path.join(dirPath, event.filename);
+                try {
+                    const stats = await fs.stat(fullPath);
+                    if (stats.isDirectory()) {
+
+                        directoryPaths.push(fullPath);
+                        const subDirs = await getAllDirectories(fullPath);
+                        directoryPaths.push(...subDirs);
+                        listenDirChanges(directoryPaths);
+                    } else if (stats.isFile()) {
+ 
+                        directoryFilePaths.push(fullPath);
+                        const childrenFiles = await getAllDirectoryFiles(fullPath, extensions);
+                        directoryFilePaths.push(...childrenFiles);
+                        if (stats.size === 0) writeAllFiles(directoryFilePaths);
+                    }
+
+                } catch (err) {
+                 if (err.code !== 'ENOENT') {
+                        console.error("Error handling event:", err.message);
+                    }
+
+                }
+
             }
+
         } catch (err) {
-            console.error(`Error watching ${itemPath}:`, err.message);
-        }
-    });
-} 
-
-
-(
-    async () => {
-        const configPath = path.join(__dirname, 'conf.json');
-        try {
-            const res = await fs.readFile(configPath, 'utf8');
-
-            const json = await JSON.parse(res);
-            const extensions = json.target;
-            const dirPath = json.dir;
-
-            autoFunction(dirPath, extensions); 
-            await listenDirChanges(dirPath, extensions);
-        } catch(err) {
-            console.error(`init error: ${err.message}`);
+              console.error(`Error watching ${dirPath}:`, err.message);
         }
     }
-)();
 
+} 
+
+*/
