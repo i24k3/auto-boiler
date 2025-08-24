@@ -4,6 +4,7 @@ const fs = require('node:fs').promises;
 const path = require('node:path');
 const { watch } = require('node:fs/promises');
 const { getTemplate } = require('./template');
+
 let directoryPaths = new Set(); 
 let directoryFilePaths = new Set();
 let extensions =[];
@@ -24,6 +25,7 @@ let renameFlag = false;
             renameFlag = renameOverridesFileContent;
 
             for (const dirPath of dirPaths) {
+                directoryPaths.add(dirPath);
                 const dirs = await getAllDirectories(dirPath);
                 const files = await getAllDirectoryFiles(dirPath, extensions);
 
@@ -31,13 +33,17 @@ let renameFlag = false;
                 files.forEach(file => directoryFilePaths.add(file));
             }
 
-            writeAllFiles(directoryFilePaths);
-            await listenDirChanges(directoryPaths, directoryFilePaths, extensions);
+            console.log("directoryPaths before:",directoryPaths);
+            // writeAllFiles(directoryFilePaths);
+            listenDirChanges(directoryPaths, directoryFilePaths);
+
         } catch(err) {
             console.error(`init error: ${err.message}`);
         }
     }
+
 )();
+
 
 
 async function getAllDirectoryFiles (parentPath, extensions) {
@@ -62,13 +68,8 @@ async function getAllDirectoryFiles (parentPath, extensions) {
     return filesPath;
 }
 
-let flag = true;
 async function getAllDirectories (rootDir) {
     let folders = [];
-    if (flag) {
-        folders.push(rootDir);
-        flag = false;
-    }
     try {
         const contents = await fs.readdir(rootDir);
         for (const item of contents) {
@@ -103,7 +104,11 @@ async function writeAllFiles (filesPaths, flag = false) {
             fs.writeFile(filePath, code, err => {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
-            console.log("data written successfully");
+            if (!flag) {
+                console.log("data written successfully");
+            } else {
+                console.log("data override successfully");
+            }
 
         } catch (err) {
             console.error("error checking file: ", err);
@@ -113,54 +118,66 @@ async function writeAllFiles (filesPaths, flag = false) {
     return;
 }
 
-/*
-const listenDirChanges = async (directoryPaths, directoryFilePaths) => {
-    for (const dirPath of directoryPaths) watchDirectory(dirPath);
+let filesAlreadExistInDir = true;
+const listenDirChanges = (directoryPaths, directoryFilePaths) => {
+    if (filesAlreadExistInDir) {
+        writeAllFiles(directoryFilePaths);
+        filesAlreadExistInDir = false;
+    }
 
+    const watchDir = async (dpath) => {
+        const watcher = watch(dpath);
+        for await (const event of watcher) {
 
-    async function watchDirectory(dirPath) {
-        try {
-            const watcher = watch(dirPath, { recursive: false });
-
-            for await (const event of watcher) {
-                const fullPath = path.join(dirPath, event.filename);
-
-                try {
-                    const stats = await fs.stat(fullPath);
-
-                    if (stats.isDirectory()) {
-                        if (!directoryPaths.has(fullPath)) {
-                            directoryPaths.add(fullPath);
-                            await watchDirectory(fullPath);
-
-                            const subDirs = await getAllDirectories(fullPath);
-                            for (const subDir of subDirs) {
-                                if (!directoryPaths.has(subDir)) {
-                                    directoryPaths.add(subDir);
-                                    await watchDirectory(subDir);
-                                }
-                            }
-                        }
-                    } else if (stats.isFile()) {
-                        if (!directoryFilePaths.has(fullPath)) {
-                            directoryFilePaths.add(fullPath);
-                            writeAllFiles([fullPath]);
-                        }
-                        if (event.eventType === 'rename') {
-                            writeAllFiles([fullPath], renameFlag);
-                        } 
-                    }
-
-                } catch (err) {
-                    if (err.code !== 'ENOENT') {
-                        console.error("Error handling event:", err.message);
-                    }
+            const fullPath = path.join(dpath, event.filename);
+            let stats;
+            try {
+                stats = await fs.stat(fullPath);
+            } catch (err) {
+                if (err.code === 'ENOENT') {
+                    // File was deleted or renamed
+                    console.log(`Deleted or moved: ${event.filename}`);
+                    directoryFilePaths.delete(fullPath);
+                    // directoryPaths.delete(fullPath);
+                    continue;
+                } else {
+                    // Other unexpected error
+                    console.error('Error accessing:', fullPath, err);
+                    continue;
                 }
             }
-        } catch (err) {
-            console.error(`Error watching ${dirPath}:`, err.message);
+
+            if (stats.isDirectory()) {
+                if (! directoryPaths.has(fullPath)) {
+                    directoryPaths.add(fullPath);
+                    const dirs = await getAllDirectories(fullPath); 
+                    for (const dir of dirs) {
+                        if (!directoryPaths.has(dir)) {
+                            directoryPaths.add(dir);
+                            await watchDir(dir); // recursively attach watchers properly
+                            console.log("nested dir added:", dir);
+                        }
+                    }
+                    console.log("dir added: ", fullPath);
+                }
+
+            } else if (stats.isFile()) {
+                if (! directoryFilePaths.has(fullPath)) {
+                    directoryFilePaths.add(fullPath);
+                    console.log("file added: ", fullPath);
+                }
+
+                if (event.eventType === 'rename') {
+                    console.log("file renamed",event.filename);
+                    writeAllFiles([fullPath], renameFlag);
+                }
+
+            }
+            writeAllFiles(directoryFilePaths);
         }
     }
+
+    for (const dpath of directoryPaths) watchDir(dpath);
 }
 
-*/
+
