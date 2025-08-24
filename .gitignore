@@ -143,5 +143,3 @@ package.json
 package-lock.json
 
 # testing file and temp files
-test.js
-src/
