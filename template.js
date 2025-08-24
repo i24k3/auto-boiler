@@ -9,7 +9,7 @@ const getTemplate = async (extensions, extension, fileName) => {
 }
 
 
-const functions = require('./codeTemplate');
+const functions = require('./templates/extensionBasedTemplates');
 const getFunction  = (extension) => {
     const fileType = extension.split('.')[1];
     return functions[fileType];
