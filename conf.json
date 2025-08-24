@@ -1,5 +1,5 @@
 {
     "targetedFiles":[".jsx",".tsx", ".ts", ".js", ".java"],
     "listenRootDirs": ["./src", "./test"],
-    "renameOverridesFileContent": false
+    "renameOverridesFileContent": true
 }
