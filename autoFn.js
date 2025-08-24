@@ -7,6 +7,7 @@ const { getTemplate } = require('./template');
 let directoryPaths = new Set(); 
 let directoryFilePaths = new Set();
 let extensions =[];
+let renameFlag = false;
 
 (
     async () => {
@@ -15,21 +16,29 @@ let extensions =[];
         try {
             const res = await fs.readFile(configPath, 'utf8');
             const json = await JSON.parse(res);
-            const dirPath  = json.dir;
-            extensions = json.target;
+            const { 
+                listenRootDirs: dirPaths,
+                targetedFiles, 
+                renameOverridesFileContent } = json;
+            extensions = targetedFiles;
+            renameFlag = renameOverridesFileContent;
 
-            directoryPaths = new Set(await getAllDirectories(dirPath)); 
-            directoryFilePaths = new Set(await getAllDirectoryFiles(dirPath, extensions));
+            for (const dirPath of dirPaths) {
+                const dirs = await getAllDirectories(dirPath);
+                const files = await getAllDirectoryFiles(dirPath, extensions);
+
+                dirs.forEach(dir => directoryPaths.add(dir));
+                files.forEach(file => directoryFilePaths.add(file));
+            }
 
             writeAllFiles(directoryFilePaths);
-
             await listenDirChanges(directoryPaths, directoryFilePaths, extensions);
-
         } catch(err) {
             console.error(`init error: ${err.message}`);
         }
     }
 )();
+
 
 async function getAllDirectoryFiles (parentPath, extensions) {
     let filesPath = [];
@@ -104,6 +113,7 @@ async function writeAllFiles (filesPaths, flag = false) {
     return;
 }
 
+/*
 const listenDirChanges = async (directoryPaths, directoryFilePaths) => {
     for (const dirPath of directoryPaths) watchDirectory(dirPath);
 
@@ -137,8 +147,8 @@ const listenDirChanges = async (directoryPaths, directoryFilePaths) => {
                             writeAllFiles([fullPath]);
                         }
                         if (event.eventType === 'rename') {
-                            writeAllFiles([fullPath], true);
-                        }
+                            writeAllFiles([fullPath], renameFlag);
+                        } 
                     }
 
                 } catch (err) {
@@ -153,3 +163,4 @@ const listenDirChanges = async (directoryPaths, directoryFilePaths) => {
     }
 }
 
+*/
