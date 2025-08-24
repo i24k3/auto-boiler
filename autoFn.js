@@ -32,9 +32,8 @@ let renameFlag = false;
                 dirs.forEach(dir => directoryPaths.add(dir));
                 files.forEach(file => directoryFilePaths.add(file));
             }
-
             console.log("directoryPaths before:",directoryPaths);
-            // writeAllFiles(directoryFilePaths);
+
             listenDirChanges(directoryPaths, directoryFilePaths);
 
         } catch(err) {
@@ -138,7 +137,6 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
                     // File was deleted or renamed
                     console.log(`Deleted or moved: ${event.filename}`);
                     directoryFilePaths.delete(fullPath);
-                    // directoryPaths.delete(fullPath);
                     continue;
                 } else {
                     // Other unexpected error
@@ -150,11 +148,12 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
             if (stats.isDirectory()) {
                 if (! directoryPaths.has(fullPath)) {
                     directoryPaths.add(fullPath);
+                    watchDir(fullPath);
                     const dirs = await getAllDirectories(fullPath); 
                     for (const dir of dirs) {
                         if (!directoryPaths.has(dir)) {
                             directoryPaths.add(dir);
-                            await watchDir(dir); // recursively attach watchers properly
+                            await watchDir(dir); 
                             console.log("nested dir added:", dir);
                         }
                     }
