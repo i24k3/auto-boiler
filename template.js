@@ -1,17 +1,17 @@
 "use strict";
 
 const getTemplate = async (extensions, extension, fileName) => {
-    if (!extensions.includes(extension)) throw new Error(`Extension ${extension} ins't supported`);
+    if (!extensions.includes(extension)) return;  
 
     const fn = getFunction(extension);
     return fn(fileName);
-
 }
 
-
-const functions = require('./templates/extensionBasedTemplates');
+const functions = require('./boilerplates');
 const getFunction  = (extension) => {
-    const fileType = extension.split('.')[1];
+    const parts = extension.split('.');
+    const fileType = parts[parts.length - 1];
+
     return functions[fileType];
 }
 

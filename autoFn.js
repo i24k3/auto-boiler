@@ -11,13 +11,14 @@ let directoryFilePaths = new Set();
 let extensions =[];
 let renameFlag = false;
 
+
+require('./createTemp');
 (
     async () => {
-
         const configPath = path.join(__dirname, 'conf.json');
         try {
             const res = await fs.readFile(configPath, 'utf8');
-            const json = await JSON.parse(res);
+            const json = JSON.parse(res);
             const { 
                 listenRootDirs: dirPaths,
                 targetedFiles, 
@@ -33,7 +34,6 @@ let renameFlag = false;
                 dirs.forEach(dir => directoryPaths.add(dir));
                 files.forEach(file => directoryFilePaths.add(file));
             }
-            console.log("directoryPaths before:",directoryPaths);
 
             listenDirChanges(directoryPaths, directoryFilePaths);
 
@@ -105,10 +105,11 @@ async function writeAllFiles (filesPaths, flag = false) {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
             if (!flag) {
-                console.log("data written successfully");
+                console.log("data override Disabled: rename will NOT Override the file contents");
             } else {
-                console.log("data override successfully");
+                console.log("data override Enabled: rename WILL Override the file contents");
             }
+            console.log("data written successfully");
 
         } catch (err) {
             console.error("error checking file: ", err);
@@ -179,5 +180,4 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
 
     for (const dpath of directoryPaths) watchDir(dpath);
 }
-
 
