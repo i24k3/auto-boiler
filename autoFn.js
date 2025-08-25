@@ -101,6 +101,10 @@ async function writeAllFiles (filesPaths, flag = false) {
             if (!flag && stats.size !== 0) continue;
 
             const code = await getTemplate(extensions, extension, fileName);
+            if (typeof code !== 'string') {
+                console.warn(`No template found for extension "${extension}". Skipping: ${filePath}`);
+                continue;
+            }
             fs.writeFile(filePath, code, err => {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
@@ -127,6 +131,15 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
     }
 
     const watchDir = async (dpath) => {
+        try {
+            await fs.access(dpath);
+        } catch (err) {
+            console.warn(`failed to watch the specified path: ${dpath} `,err.message);
+            return;
+        }
+
+
+
         const watcher = watch(dpath);
         for await (const event of watcher) {
 
@@ -170,7 +183,18 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
 
                 if (event.eventType === 'rename') {
                     console.log("file renamed",event.filename);
+
                     writeAllFiles([fullPath], renameFlag);
+
+                    const pathSeg = getPathSegments(fullPath);
+                    for (const seg of pathSeg) {
+                        if (!directoryPaths.has(seg)) {
+                            directoryPaths.add(seg);
+                            await watchDir(seg); 
+                            console.log("dir Added: dir was created via a file", dir);
+                        }
+                    }
+
                 }
 
             }
@@ -180,4 +204,34 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
 
     for (const dpath of directoryPaths) watchDir(dpath);
 }
+
+/*
+const getPathSegments = (pathStr)  => {
+    let pathSeg = [];
+    const pathParts = pathStr.split('/');
+    let dirPath = "";
+    for (const part of pathParts) {
+        dirPath += (!dirPath ? "": "/") + part;
+        pathSeg.push("/" + dirPath);
+    }
+    return pathSeg;
+}
+*/
+
+const getPathSegments = (filePath) => {
+    const absFilePath = path.resolve(filePath); 
+    const baseDir = __dirname; 
+    const relPath = path.relative(baseDir, absFilePath); 
+
+    const parts = relPath.split(path.sep).filter(Boolean); 
+    const segments = [];
+
+    for (let i = 0; i < parts.length - 1; i++) { 
+        const segment = path.join(baseDir, ...parts.slice(0, i + 1));
+        segments.push(segment);
+    }
+
+    return segments;
+};
+
 

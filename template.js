@@ -1,10 +1,11 @@
 "use strict";
 
 const getTemplate = async (extensions, extension, fileName) => {
-    if (!extensions.includes(extension)) return;  
-
-    const fn = getFunction(extension);
-    return fn(fileName);
+    if (extensions.includes(extension)) {
+        const fn = getFunction(extension);
+        return fn(fileName);
+    }
+    return;  
 }
 
 const functions = require('./boilerplates');
