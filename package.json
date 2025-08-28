@@ -1,5 +1,5 @@
 {
-  "name": "auto-function",
+  "name": "auto-boiler",
   "version": "1.0.0",
   "description": "A simple file watcher that automatically adds boilerplate code to new files. Supports multiple file types like JS, JSX, TS, TSX, and more. Just run it in the background and save time writing repetitive code!",
   "keywords": [
