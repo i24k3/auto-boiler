@@ -16,18 +16,18 @@
     "file-template",
     "auto-generate"
   ],
-  "homepage": "https://github.com/i24k3/auto-function#readme",
+  "homepage": " https://github.com/i24k3/auto-boiler#readme",
   "bugs": {
-    "url": "https://github.com/i24k3/auto-function/issues"
+    "url": " https://github.com/i24k3/auto-boiler/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/i24k3/auto-function.git"
+    "url": "https://github.com/i24k3/auto-boiler.git"
   },
   "license": "MIT",
   "author": "i24k3 (Arsalan Khan)",
   "type": "commonjs",
-  "main": "autoFn.js",
+  "main": "autoBoiler.js",
   "bin": {
     "auto-function": "./autoFn.js"
   }

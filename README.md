@@ -1,4 +1,4 @@
-# auto-function
+# auto-boiler
 
 Auto-generate boilerplate for new files.
 > Made for lazy devs like me.
@@ -8,7 +8,7 @@ install from npm and save it as a dev dependency
 > After all its a dev dependency.
 
 ```sh
-npm install auto-function --save-dev
+npm install auto-boiler --save-dev
 ```
 
 ## Usage
