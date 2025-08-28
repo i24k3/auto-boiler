@@ -46,7 +46,8 @@ require('./createTemp');
 
 
 const getTargetedFiles = async () => {
-    const files = await getFiles('./templates/', '.js');
+    const templatePath= path.join(__dirname, './templates/');
+    const files = await getFiles(templatePath, '.js');
     let filenames = [];
     for (const file of files) {
         const name = path.basename(file).split('.')[0];

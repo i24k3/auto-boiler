@@ -23,7 +23,8 @@ async function getFiles (parentPath, extensions) {
 
 const templateProvider = async () => {
     try {
-        const files = await getFiles('./templates/', '.js');
+        const templatesPath = path.join(__dirname,'./templates');
+        const files = await getFiles(templatesPath, '.js');
         await writeToBoilerplateFile(files);
     } catch (err) {
         console.error("Error getting files:", err.message);
@@ -52,7 +53,8 @@ const writeToBoilerplateFile = async (files) => {
     boilerplate += exportCode;
 
     try {
-        await fs.writeFile('./boilerplates.js', boilerplate);
+        const filePath = path.join(__dirname, './boilerplates.js');
+        await fs.writeFile(filePath, boilerplate);
         console.log("Successfully wrote boilerplates.js");
     } catch (err) {
         console.error("Error writing boilerplates.js:", err.message);
