@@ -1,6 +1,5 @@
 {
     "_comment": "change things around according to your use case, have fun >_<",
-    "targetedFiles":[".jsx",".tsx", ".ts", ".js", ".java"],
     "listenRootDirs": ["./src"],
     "renameOverridesFileContent": true
 }

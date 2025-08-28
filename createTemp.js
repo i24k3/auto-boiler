@@ -64,3 +64,6 @@ const writeToBoilerplateFile = async (files) => {
     await templateProvider();
 })();
 
+
+module.exports = getFiles;
+

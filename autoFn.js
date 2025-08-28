@@ -5,6 +5,7 @@ const fs = require('node:fs').promises;
 const path = require('node:path');
 const { watch } = require('node:fs/promises');
 const { getTemplate } = require('./template');
+const getFiles = require('./createTemp');
 
 let directoryPaths = new Set(); 
 let directoryFilePaths = new Set();
@@ -21,9 +22,8 @@ require('./createTemp');
             const json = JSON.parse(res);
             const { 
                 listenRootDirs: dirPaths,
-                targetedFiles, 
                 renameOverridesFileContent } = json;
-            extensions = targetedFiles;
+            extensions = await getTargetedFiles();
             renameFlag = renameOverridesFileContent;
 
             for (const dirPath of dirPaths) {
@@ -44,6 +44,17 @@ require('./createTemp');
 
 )();
 
+
+const getTargetedFiles = async () => {
+    const files = await getFiles('./templates/', '.js');
+    let filenames = [];
+    for (const file of files) {
+        const name = path.basename(file).split('.')[0];
+        filenames.push("."+name);
+    }
+    console.log(filenames);
+    return filenames;
+}
 
 
 async function getAllDirectoryFiles (parentPath, extensions) {
@@ -105,6 +116,7 @@ async function writeAllFiles (filesPaths, flag = false) {
                 console.warn(`No template found for extension "${extension}". Skipping: ${filePath}`);
                 continue;
             }
+
             fs.writeFile(filePath, code, err => {
                 if(err) throw new Error (`Error writting Function body: ${file}`, err.message);
             })
@@ -137,7 +149,6 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
             console.warn(`failed to watch the specified path: ${dpath} `,err.message);
             return;
         }
-
 
 
         const watcher = watch(dpath);
@@ -186,15 +197,6 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
 
                     writeAllFiles([fullPath], renameFlag);
 
-                    const pathSeg = getPathSegments(fullPath);
-                    for (const seg of pathSeg) {
-                        if (!directoryPaths.has(seg)) {
-                            directoryPaths.add(seg);
-                            await watchDir(seg); 
-                            console.log("dir Added: dir was created via a file", dir);
-                        }
-                    }
-
                 }
 
             }
@@ -204,34 +206,4 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
 
     for (const dpath of directoryPaths) watchDir(dpath);
 }
-
-/*
-const getPathSegments = (pathStr)  => {
-    let pathSeg = [];
-    const pathParts = pathStr.split('/');
-    let dirPath = "";
-    for (const part of pathParts) {
-        dirPath += (!dirPath ? "": "/") + part;
-        pathSeg.push("/" + dirPath);
-    }
-    return pathSeg;
-}
-*/
-
-const getPathSegments = (filePath) => {
-    const absFilePath = path.resolve(filePath); 
-    const baseDir = __dirname; 
-    const relPath = path.relative(baseDir, absFilePath); 
-
-    const parts = relPath.split(path.sep).filter(Boolean); 
-    const segments = [];
-
-    for (let i = 0; i < parts.length - 1; i++) { 
-        const segment = path.join(baseDir, ...parts.slice(0, i + 1));
-        segments.push(segment);
-    }
-
-    return segments;
-};
-
 
