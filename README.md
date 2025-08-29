@@ -16,7 +16,7 @@ Add to your projects `package.json` file.
 
 ```json
 "scripts": {
-    "auto": "auto-function",
+    "auto": "auto-boiler",
 }
 ```
 
@@ -29,9 +29,9 @@ npm run auto
 ```
 
 ## Config 
-By default the auto-function watches over the `./src/` dir as root. But multiple
+By default the auto-boiler watches over the `./src/` dir as root. But multiple
 root folders/dirs can be included. Say we want to also set the `./test/` as sibling root folder/dir.
-In the auto-functions folder (inside `./node_modules/`) look for `conf.json`. 
+In the auto-boiler folder (inside `./node_modules/`) look for `conf.json`. 
 > There include the folder path, which is in our case the `./test/`.
 
 ```json
@@ -77,13 +77,13 @@ If the new file extension template exists in the template folder it will overrid
 Built only with node.js core modules (`fs`, `path`). No external dependencies.
 
 ## Inspiration
-- Next.js -> The whole "path-based routing" thing made me think. They are just reading the path and then putting it 
+- Next.js: The whole "path-based routing" thing made me think. They are just reading the path and then putting it 
 inside a router-script to move based on paths. 
 
-- NeoVim -> The way nvim (especilly lazy.nvim) just auto detects the new pluggin automatically when put a file in a drectory. Inspired 
+- NeoVim: The way nvim (especilly lazy.nvim) just auto detects the new pluggin automatically when put a file in a drectory. Inspired 
 the idea for using adding files to get template for new extensions.
 
-- my lazieness ->honestly, i didn't want to type the same boilerplate, i know there is emmet and stuff but i am so lazy that i don't even wanna
+- my lazieness: honestly, i didn't want to type the same boilerplate, i know there is emmet and stuff but i am so lazy that i don't even wanna
 type the few characters again and again. This Project is the result.
 
 

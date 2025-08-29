@@ -29,7 +29,7 @@
   "type": "commonjs",
   "main": "autoBoiler.js",
   "bin": {
-    "auto-function": "./autoFn.js"
+    "auto-boiler": "./autoBoiler.js"
   }
 }
 
