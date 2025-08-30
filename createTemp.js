@@ -24,7 +24,7 @@ async function getFiles (parentPath, extensions) {
 const templateProvider = async () => {
     try {
         const templatesPath = path.join(__dirname,'./templates');
-        const files = await getFiles(templatesPath, '.js');
+        const files = await getFiles(templatesPath, ['.js']);
         await writeToBoilerplateFile(files);
     } catch (err) {
         console.error("Error getting files:", err.message);
@@ -61,11 +61,6 @@ const writeToBoilerplateFile = async (files) => {
     }
 };
 
+module.exports = {getFiles, templateProvider};
 
-(async () => {
-    await templateProvider();
-})();
-
-
-module.exports = getFiles;
 

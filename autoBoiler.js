@@ -5,17 +5,18 @@ const fs = require('node:fs').promises;
 const path = require('node:path');
 const { watch } = require('node:fs/promises');
 const { getTemplate } = require('./template');
-const getFiles = require('./createTemp');
+const { getFiles, templateProvider }= require('./createTemp');
 
 let directoryPaths = new Set(); 
 let directoryFilePaths = new Set();
 let extensions =[];
 let renameFlag = false;
 
-
-require('./createTemp');
 (
     async () => {
+        await templateProvider();
+        extensions = await getTargetedFiles(); // create extensions from filenames
+
         const configPath = path.join(__dirname, 'conf.json');
         try {
             const res = await fs.readFile(configPath, 'utf8');
@@ -23,8 +24,8 @@ require('./createTemp');
             const { 
                 listenRootDirs: dirPaths,
                 renameOverridesFileContent } = json;
-            extensions = await getTargetedFiles();
             renameFlag = renameOverridesFileContent;
+
 
             for (const dirPath of dirPaths) {
                 directoryPaths.add(dirPath);
@@ -47,7 +48,7 @@ require('./createTemp');
 
 const getTargetedFiles = async () => {
     const templatePath= path.join(__dirname, './templates/');
-    const files = await getFiles(templatePath, '.js');
+    const files = await getFiles(templatePath, ['.js']);
     let filenames = [];
     for (const file of files) {
         const name = path.basename(file).split('.')[0];
@@ -201,7 +202,7 @@ const listenDirChanges = (directoryPaths, directoryFilePaths) => {
                 }
 
             }
-            writeAllFiles(directoryFilePaths);
+            // writeAllFiles(directoryFilePaths);
         }
     }
 
