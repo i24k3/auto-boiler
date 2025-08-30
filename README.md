@@ -38,7 +38,7 @@ In the auto-boiler folder (inside `./node_modules/`) look for `conf.json`.
 {
     "_comment": "change things around according to your use case, have fun >_<",
     "listenRootDirs": ["./src", "./test"],
-    "renameOverridesFileContent": true
+    "renameOverridesFileContent": false
 }
 ```
 
@@ -69,9 +69,9 @@ def ${fileName}():
 Now any *.py file will get the same boilerplate automatically within the targeted root folder(s).
 
 ## Critical 
-By default the `renameOverridesFileContent` is set to `true`. what it simply means is that if a file is renamed while the script is running.
-If the new file extension template exists in the template folder it will override the data irrespective of the data it holds. 
-> set to false if you tend to change file extension after writting a lot of code. Replaced by boilerplate code.
+By default the `renameOverridesFileContent` is set to `false`. what it simply means is that if a file is renamed while the script is running.
+If the extension template exists in the template folder it will NOT override the data the file holds. 
+> set to true if you tend to change file extensions after writting a lot of code and don't mind starting from scrach. (tested with react just don't do it, its disgusting).
 
 ## Tech
 Built only with node.js core modules (`fs`, `path`). No external dependencies.
